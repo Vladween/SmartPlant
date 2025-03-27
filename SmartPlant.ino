@@ -135,7 +135,7 @@ void WriteERROR(const String& comment, String& responce)
 {
   responce = "ERROR\n" + comment;
 }
-void WriteOK(String& responce)
+void WriteOK(const String& responce)
 {
   responce = "OK";
 }
@@ -165,6 +165,7 @@ void ReadInt(byte& value, byte argc, String* argv, String& responce)
   if(argc != 3)
   {
     WriteERROR("Invalid number of arguments!", responce);
+    return;
   }
 
   value = argv[2].toInt();
@@ -176,6 +177,7 @@ void ReadShortTime(ShortTime& stime, byte argc, String* argv, String& responce)
   if(argc != 4)
   {
     WriteERROR("Invalid number of arguments!", responce);
+    return;
   }
 
   stime.minutes = (byte)argv[2].toInt();
@@ -188,6 +190,7 @@ void ReadLongTime(LongTime& ltime, byte argc, String* argv, String& responce)
   if(argc != 5)
   {
     WriteERROR("Invalid number of arguments!", responce);
+    return;
   }
 
   ltime.hours   = (byte)argv[2].toInt();
@@ -218,9 +221,17 @@ void HandleRequest(const String& request, String& responce)
       ReadLongTime(light_on, argc, argv, responce);
     else if(argv[1] == "light_off")
       ReadLongTime(light_off, argc, argv, responce);
+    else
+      WriteERROR("Unknown variable!", responce);
   }
   else if(argv[0] == "get")
   {
+    if(argc != 2)
+    {
+      WriteERROR("Invalid number of arguments!", responce);
+      goto Send;
+    }
+
     if(argv[1] == "water_time")
       WriteShortTime(water_time, responce);
     else if(argv[1] == "min_moisture")
@@ -245,11 +256,15 @@ void HandleRequest(const String& request, String& responce)
       WriteBool(pump.isOn(), responce);
     else if(argv[1] == "light")
       WriteBool(light.isOn(), responce);
+    else
+      WriteERROR("Unknown variable!", responce);
   }
   else
   {
     WriteERROR("Unknown command!", responce);
   }
+
+Send:
 
   delete[] argv;
 }
